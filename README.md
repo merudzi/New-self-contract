@@ -16,3 +16,28 @@ This contract was created as a hands-on learning project while studying Solidity
 - Solidity ^0.8.18
 - Remix IDE
 - GitHub
+
+# New-self-contract
+
+A simple Solidity practice contract built in Remix.
+
+## Features
+- Stores three numbers (value, secondValue, thirdValue)
+- Owner-only setters + reset
+- Events emitted for frontend listening
+- Two-step ownership transfer:
+  - `proposeNewOwner(address)`
+  - `acceptOwnership()`
+  - optional `cancelOwnershipTransfer()`
+
+## How to use (Remix)
+1. Open Remix
+2. Create `NewSelfContract.sol`
+3. Paste code from this repo
+4. Compile with Solidity ^0.8.18
+5. Deploy
+6. Try:
+   - setValue / setSecondValue / setThirdValue
+   - reset
+   - proposeNewOwner (from owner)
+   - acceptOwnership (from pending owner)

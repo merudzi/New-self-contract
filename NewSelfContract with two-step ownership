@@ -1,0 +1,117 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
+
+contract NewSelfContract {
+    // ─────────────────────────────────────────────────────────────────────────────
+    // TYPES
+    // ─────────────────────────────────────────────────────────────────────────────
+    struct Numbers {
+        uint256 value;
+        uint256 secondValue;
+        uint256 thirdValue;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // STATE
+    // ─────────────────────────────────────────────────────────────────────────────
+    Numbers private numbers;
+
+    address public owner;
+    address public pendingOwner;
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // EVENTS
+    // ─────────────────────────────────────────────────────────────────────────────
+    event ValueSet(address indexed caller, uint256 newValue);
+    event SecondValueSet(address indexed caller, uint256 newSecondValue);
+    event ThirdValueSet(address indexed caller, uint256 newThirdValue);
+
+    // Two-step ownership events
+    event OwnershipTransferProposed(address indexed currentOwner, address indexed pendingOwner);
+    event OwnershipTransferred(address indexed oldOwner, address indexed newOwner);
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // CONSTRUCTOR
+    // ─────────────────────────────────────────────────────────────────────────────
+    constructor() {
+        owner = msg.sender;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // MODIFIERS
+    // ─────────────────────────────────────────────────────────────────────────────
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not the owner");
+        _;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // SETTERS / ACTIONS
+    // ─────────────────────────────────────────────────────────────────────────────
+    function setValue(uint256 _value) public onlyOwner {
+        numbers.value = _value;
+        emit ValueSet(msg.sender, _value);
+    }
+
+    function setSecondValue(uint256 _secondValue) public onlyOwner {
+        numbers.secondValue = _secondValue;
+        emit SecondValueSet(msg.sender, _secondValue);
+    }
+
+    function setThirdValue(uint256 _thirdValue) public onlyOwner {
+        numbers.thirdValue = _thirdValue;
+        emit ThirdValueSet(msg.sender, _thirdValue);
+    }
+
+    function reset() public onlyOwner {
+        numbers.value = 0;
+        numbers.secondValue = 0;
+        numbers.thirdValue = 0;
+
+        // Optional: emit "set" events so the frontend can react
+        emit ValueSet(msg.sender, 0);
+        emit SecondValueSet(msg.sender, 0);
+        emit ThirdValueSet(msg.sender, 0);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // TWO-STEP OWNERSHIP TRANSFER
+    // ─────────────────────────────────────────────────────────────────────────────
+    function proposeNewOwner(address _newOwner) public onlyOwner {
+        require(_newOwner != address(0), "Zero address");
+        pendingOwner = _newOwner;
+        emit OwnershipTransferProposed(owner, _newOwner);
+    }
+
+    function acceptOwnership() public {
+        require(msg.sender == pendingOwner, "Not pending owner");
+        address oldOwner = owner;
+
+        owner = pendingOwner;
+        pendingOwner = address(0);
+
+        emit OwnershipTransferred(oldOwner, owner);
+    }
+
+    // Optional safety: owner can cancel a pending transfer
+    function cancelOwnershipTransfer() public onlyOwner {
+        pendingOwner = address(0);
+        emit OwnershipTransferProposed(owner, address(0));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // GETTERS (READ-ONLY)
+    // ─────────────────────────────────────────────────────────────────────────────
+    function getBoth() public view returns (uint256, uint256) {
+        return (numbers.value, numbers.secondValue);
+    }
+
+    function getAll() public view returns (uint256, uint256, uint256) {
+        return (numbers.value, numbers.secondValue, numbers.thirdValue);
+    }
+
+    // If you want a single-number getter too:
+    function getValue() public view returns (uint256) {
+        return numbers.value;
+    }
+}
